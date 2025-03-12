@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager with LocalStorage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        input, button {
+            padding: 8px;
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        #taskList {
+            margin-top: 20px;
+        }
+        .task-item {
+            padding: 8px;
+            margin: 5px 0;
+            background-color: #fff;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: grey;
+        }
+        .btn {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Task Manager</h1>
+
+    <div>
+        <input type="text" id="taskInput" placeholder="Enter your task">
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <div>
+        <input type="number" id="removeIndex" placeholder="Index to remove">
+        <button onclick="removeTask()">Remove Task</button>
+    </div>
+
+    <button onclick="showTasks()">Show Tasks</button>
+    <button onclick="clearTasks()">Clear All Tasks</button>
+
+    <div id="taskList"></div>
+
+    <script>
+        // Initialize tasks array in localStorage if it doesn't exist
+        if (!localStorage.getItem('tasks')) {
+            localStorage.setItem('tasks', JSON.stringify([]));
+        }
+
+        // Add a task to the list
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const task = taskInput.value.trim();
+            if (task) {
+                let tasks = JSON.parse(localStorage.getItem('tasks'));
+                tasks.push({ task: task, completed: false }); // Add task object with completed status
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                taskInput.value = ''; // Clear input field
+                showTasks(); // Update the task list display
+            } else {
+                alert("Please enter a task.");
+            }
+        }
+
+        // Remove a task by its index
+        function removeTask() {
+            const removeIndex = document.getElementById('removeIndex').value;
+            const index = parseInt(removeIndex);
+            if (isNaN(index) || index < 0) {
+                alert("Please enter a valid index.");
+                return;
+            }
+            let tasks = JSON.parse(localStorage.getItem('tasks'));
+            if (index >= 0 && index < tasks.length) {
+                tasks.splice(index, 1); // Remove task at the specified index
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                showTasks(); // Update the task list display
+            } else {
+                alert("Index out of bounds.");
+            }
+        }
+
+        // Mark a task as completed by toggling the completed status
+        function toggleCompletion(index) {
+            let tasks = JSON.parse(localStorage.getItem('tasks'));
+            tasks[index].completed = !tasks[index].completed; // Toggle completion status
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            showTasks(); // Update the task list display
+        }
+
+        // Show all tasks
+        function showTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = ''; // Clear current list
+            let tasks = JSON.parse(localStorage.getItem('tasks'));
+            tasks.forEach((task, index) => {
+                const taskItem = document.createElement('div');
+                taskItem.classList.add('task-item');
+
+                // Task text
+                const taskText = document.createElement('span');
+                taskText.textContent = task.task;
+                if (task.completed) {
+                    taskText.classList.add('completed');
+                }
+                taskItem.appendChild(taskText);
+
+                // Complete/Incomplete button
+                const completeButton = document.createElement('button');
+                completeButton.textContent = task.completed ? 'Undo' : 'Complete';
+                completeButton.classList.add('btn');
+                completeButton.onclick = () => toggleCompletion(index);
+
+                // Remove button
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.classList.add('btn');
+                removeButton.onclick = () => {
+                    removeTaskAtIndex(index);
+                };
+
+                taskItem.appendChild(completeButton);
+                taskItem.appendChild(removeButton);
+                taskList.appendChild(taskItem);
+            });
+        }
+
+        // Remove task at a specific index
+        function removeTaskAtIndex(index) {
+            let tasks = JSON.parse(localStorage.getItem('tasks'));
+            tasks.splice(index, 1); // Remove task at the specified index
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            showTasks(); // Update the task list display
+        }
+
+        // Clear all tasks
+        function clearTasks() {
+            localStorage.setItem('tasks', JSON.stringify([])); // Empty the tasks array
+            showTasks(); // Update the task list display
+        }
+
+        // Display the task list when the page is loaded
+        showTasks();
+    </script>
+
+</body>
+</html>
